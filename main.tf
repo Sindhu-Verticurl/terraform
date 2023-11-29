@@ -137,7 +137,7 @@ resource "aws_autoscaling_group" "sindhu" {
   desired_capacity     = 2
   max_size             = 4
   min_size             = 1
-  vpc_zone_identifier = [aws_subnet.public_subnet.id]
+  vpc_zone_identifier  = [aws_subnet.public_subnet.id]
   launch_template {
     id      = aws_launch_template.sindhu.id
     version = "$Latest"
@@ -154,3 +154,22 @@ resource "aws_autoscaling_group" "sindhu" {
     propagate_at_launch = true
   }
 }
+
+resource "aws_autoscaling_policy" "cpu_scale_up" {
+  name                   = "cpu-scale-up"
+  scaling_adjustment    = 1
+  adjustment_type       = "ChangeInCapacity"
+  cooldown              = 300  # 5 minutes cooldown
+
+  autoscaling_group_name = aws_autoscaling_group.sindhu.name
+}
+
+resource "aws_autoscaling_policy" "cpu_scale_down" {
+  name                   = "cpu-scale-down"
+  scaling_adjustment    = -1
+  adjustment_type       = "ChangeInCapacity"
+  cooldown              = 300  # 5 minutes cooldown
+
+  autoscaling_group_name = aws_autoscaling_group.sindhu.name
+}
+

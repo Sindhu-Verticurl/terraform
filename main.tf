@@ -113,3 +113,44 @@ resource "aws_subnet" "private_subnet" {
     Name = "TerraformPrivateSubnet"
   }
 }
+
+
+
+resource "aws_launch_template" "sindhu" {
+  name          = "sindhu-launch-template"
+  image_id      = "ami-0e83be366243f524a"  # Replace with your AMI ID
+  instance_type = "t2.medium"
+  key_name      = "verticurl"      
+
+  vpc_security_group_ids = [aws_security_group.allow_port.id]
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "sindhu-instance"
+    }
+  }
+
+}
+
+resource "aws_autoscaling_group" "sindhu" {
+  desired_capacity     = 2
+  max_size             = 4
+  min_size             = 1
+  vpc_zone_identifier = [aws_subnet.public_subnet.id]
+  launch_template {
+    id      = aws_launch_template.sindhu.id
+    version = "$Latest"
+  }
+
+  health_check_type          = "EC2"
+  health_check_grace_period  = 300
+  force_delete               = true
+  wait_for_capacity_timeout  = "0"
+  
+  tag {
+    key                 = "Name"
+    value               = "terraform1-app-instance"
+    propagate_at_launch = true
+  }
+}
